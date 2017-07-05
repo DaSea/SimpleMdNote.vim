@@ -1,2 +1,3 @@
 # SimpleMdNote.vim
-Simple note plugin use markdown file type!
+Simple note plugin which use markdown file type!
+
