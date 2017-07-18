@@ -71,30 +71,38 @@ function! simplemdnote#init_win_buffer() abort " 初始化窗口里面的内容 
     " 清空缓冲区
     normal! ggdG
 
+    " 先用python 进行查找文件
+    if !has("python") || !has("python3")
+        return
+    endif
+
     " draft 列表
-    let fulldraftpath = g:simplemdnote_draft_path . '/'
     call append(0, "## Drafts {")
-    let filecmd = 'dir ' . g:simplemdnote_draft_path . ' /b'
-    let cmdret = system(filecmd)
-    let s:draffiles = split(cmdret, '[\x0]')
-    for s:sfile in s:draffiles
-        call append(line('$')-1, '  |-' . substitute(s:sfile, fulldraftpath, "", ""))
-    endfor
+    call simplemdnote#py_fill_buffer(g:simplemdnote_draft_path)
     call append(line('$')-1, '}')
 
     " 保存drafts 与 posts的分割行号，便于打开文件
     let s:division_linenumber = line('$')
 
     " posts 列表
-    let fullpostspath = g:simplemdnote_posts_path . '/'
     call append(line('$'), "## Posts {")
-    let filecmd1 = 'dir ' . g:simplemdnote_posts_path . ' /b'
-    let cmdret1 = system(filecmd1)
-    let s:postfiles = split(cmdret1, '[\x0]')
-    for s:sfile in s:postfiles
-        call append(line('$'), '  |-' . substitute(s:sfile, fullpostspath, "", ""))
-    endfor
+    call simplemdnote#py_fill_buffer(g:simplemdnote_posts_path)
     call append(line('$'), '}')
+endfunction " }}}
+
+function! simplemdnote#py_fill_buffer(path) abort " 用python查找文件 {{{
+python3 << EOF
+import vim
+import glob
+cb = vim.current.buffer
+path = vim.eval("a:path")
+list = os.listdir(path)
+for i in range(0, len(list)):
+    fullpath = os.path.join(path, list[i])
+    if os.path.isfile(fullpath):
+        item = "|-" + list[i]
+        cb.append(item)
+EOF
 endfunction " }}}
 
 function! simplemdnote#init_linux_buffer() abort " 初始化窗口里面的内容 {{{
