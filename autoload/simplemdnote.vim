@@ -72,14 +72,16 @@ function! simplemdnote#init_win_buffer() abort " 初始化窗口里面的内容 
     normal! ggdG
 
     " 先用python 进行查找文件
-    if !has("python") || !has("python3")
+    if has("python3")==0
+        echohl Error | echo "This plugin need python3 support!" | echohl None
         return
     endif
 
     " draft 列表
     call append(0, "## Drafts {")
+    normal! dd
     call simplemdnote#py_fill_buffer(g:simplemdnote_draft_path)
-    call append(line('$')-1, '}')
+    call append(line('$'), '}')
 
     " 保存drafts 与 posts的分割行号，便于打开文件
     let s:division_linenumber = line('$')
@@ -100,7 +102,7 @@ list = os.listdir(path)
 for i in range(0, len(list)):
     fullpath = os.path.join(path, list[i])
     if os.path.isfile(fullpath):
-        item = "|-" + list[i]
+        item = "    |-" + list[i]
         cb.append(item)
 EOF
 endfunction " }}}
